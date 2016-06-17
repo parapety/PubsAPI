@@ -11,11 +11,14 @@ $ vagrant up
 ```
 
 ### API documentation
-Documentation file is located in:
+
+Documentation is available here http://editor.swagger.io/#/?import=https://raw.githubusercontent.com/parapety/PubsAPI/master/web/swagger.json 
+
+If above link is not working a documentation file is located in:
 ```sh
 web/swagger.json
 ```
-Import it manually to http://editor.swagger.io/#/ (or by url http://editor.swagger.io/#/?import=http://[your_domain]/swagger.json)
+Import it to http://editor.swagger.io/#/
 
 ### Demo
 API is provided with a responsive demo application. Use your favourite browser and visit http://127.0.0.1:8880 
