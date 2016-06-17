@@ -6,3 +6,4 @@ var/sessions
 src/AppBundle/Entity/*.php~
 coverage/
 node_modules
+.vagrant
