@@ -8,18 +8,24 @@
                     <p class="text-muted small">{{ pub.data.html_attributions|join('<br>') }}</p>
                 {% endif %}
                 <h2>{{ pub.data.name }}</h2>
-                Address: <b>{{ pub.data.address }}</b><br />
-                Phone: <b>{{ pub.data.phone }}</b><br />
-                Geocoordinates: <b>{{ pub.data.lat }}, {{ pub.data.lng }}</b><br />
+                Address: <b>{{ pub.data.address }}</b><br/>
+                Phone: <b>{{ pub.data.phone }}</b><br/>
+                Geocoordinates: <b>{{ pub.data.lat }}, {{ pub.data.lng }}</b><br/>
 
             {% else %}
                 <span class="label label-danger">Error</span>
+                <small class="text-muted">{{ pub.error }}</small>
             {% endif %}
             <hr>
-            <a href="{{ path('homepage') }}{% if searchQuery is defined %}?form[search]={{ searchQuery }}{% endif %}"><< Back</a>
+            <a href="{{ path('homepage') }}{% if searchQuery is defined %}?form[search]={{ searchQuery }}{% endif %}"><<
+                Back</a>
         </div>
         <div class="col-md-6">
-            <img src="http://maps.google.com/maps/api/staticmap?center={{ pub.data.lat }},{{ pub.data.lng }}&zoom=14&size=400x300&sensor=false" alt="Google Map" />
+            {% if pub.status == 'OK' %}
+                <img
+                        src="http://maps.google.com/maps/api/staticmap?center={{ pub.data.lat }},{{ pub.data.lng }}&zoom=14&size=400x300&sensor=false"
+                        alt="Google Map"/>
+            {% endif %}
         </div>
     </div>
 {% endblock %}
