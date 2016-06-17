@@ -21,6 +21,10 @@ class ApiRequestHandler
      */
     const RANGE = 2000;
 
+    const STATUS_OK = 'OK';
+
+    const STATUS_ZERO_RESULTS = 'ZERO_RESULTS';
+
     /**
      * @var LocationRepositoryInterface
      */
@@ -62,9 +66,10 @@ class ApiRequestHandler
      * @return array [
      * html_attributions => [],
      * data => [
-     *  [@var string $name, @var string $place_id, @var array $html_attributions], ...
+     *  [@var string $name , @var string $place_id, @var array $html_attributions], ...
      * ]
      * ]
+     * @throws \RuntimeException
      */
     public function getBars(array $latlng)
     {
@@ -75,14 +80,20 @@ class ApiRequestHandler
             $location->setLng($latlng['lng']);
 
             $locations = $this->placeApi->getBarsInRange($latlng, self::RANGE);
-            if ($locations['status'] == 'OK' && $c = count($locations['data'])) {
+
+            if (!in_array($locations['status'], [self::STATUS_OK, self::STATUS_ZERO_RESULTS])) {
+                throw new \RuntimeException($locations['status']);
+            }
+
+            if ($locations['status'] == self::STATUS_OK && $c = count($locations['data'])) {
                 $location->setHtmlAttributions($locations['html_attributions']);
                 for ($i = 0; $i < $c; $i++) {
                     $place = $this->handlePlace($locations['data'][$i]['place_id']);
                     $location->addPlace($place);
                 }
-                $this->locationRepository->save($location);
             }
+
+            $this->locationRepository->save($location);
         }
         $data = [];
         foreach ($location->getPlaces() as $item) {
@@ -97,13 +108,18 @@ class ApiRequestHandler
      * @param string $placeId
      * @return array [
      *  'data => [
-     *  [@var string $name, @var string $place_id, @var string $lat, @var string $lng, @var string $address, @var string $phone, @var array $html_attributions], ...
+     *  [@var string $name , @var string $place_id, @var string $lat, @var string $lng, @var string $address, @var string $phone, @var array $html_attributions], ...
      * ]
      * ]
+     * @throws \RuntimeException
      */
     public function getDetails($placeId)
     {
-        return ['data' => $this->handlePlace($placeId)->toArray()];
+        $place = $this->handlePlace($placeId);
+        if (!$place) {
+            return ['data' => []];
+        }
+        return ['data' => $place->toArray()];
     }
 
     /**
@@ -112,7 +128,7 @@ class ApiRequestHandler
      * @param string $searchedAddress
      * @return array [
      * 'data' => [
-     *  [@var string $latlng, @var string $address], ...
+     *  [@var string $latlng , @var string $address], ...
      * ]
      * ]
      */
@@ -121,7 +137,10 @@ class ApiRequestHandler
         $geocodes = $this->geocodeRepository->findByAddress($searchedAddress);
         if (!$geocodes) {
             $locationsData = $this->geocodeApi->getLocation($searchedAddress);
-            if ($locationsData['status_code'] == 200 && $c = count($locationsData['data'])) {
+            if (!in_array($locationsData['status'], [self::STATUS_OK, self::STATUS_ZERO_RESULTS])) {
+                throw new \RuntimeException($locationsData['status']);
+            }
+            if ($c = count($locationsData['data'])) {
                 for ($i = 0; $i < $c; $i++) {
                     $geocode = new Geocode();
                     $geocode->setLat($locationsData['data'][$i]['location']['lat']);
@@ -153,7 +172,10 @@ class ApiRequestHandler
         $place = $this->placeRepository->findByPlaceId($placeId);
         if (!$place) {
             $placeData = $this->placeApi->getDetails($placeId);
-            if ($placeData['status_code'] == 200 && !empty($placeData['data'])) {
+            if (!in_array($placeData['status'], [self::STATUS_OK, self::STATUS_ZERO_RESULTS])) {
+                throw new \RuntimeException($placeData['status']);
+            }
+            if (!empty($placeData['data'])) {
                 $place = new Place();
                 $place->setLat($placeData['data']['location']['lat']);
                 $place->setLng($placeData['data']['location']['lng']);

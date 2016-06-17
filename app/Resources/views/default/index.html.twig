@@ -54,7 +54,7 @@
                             </div>
                         {% endif %}
                     {% else %}
-                        <span class="label label-danger">Error</span>
+                        <span class="label label-danger">Error</span> <small class="text-muted">{{ searchResults.error }}</small>
                     {% endif %}
                 {% endif %}
             </div>
@@ -76,7 +76,7 @@
                     </ul>
                 {% endif %}
             {% else %}
-                <span class="label label-danger">Error</span>
+                <span class="label label-danger">Error</span> <small class="text-muted">{{ pubs.error }}</small>
             {% endif %}
         </div>
     </div>

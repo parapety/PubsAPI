@@ -113,10 +113,10 @@ class ApiRequestHandlerTest extends \PHPUnit_Framework_TestCase
             ->with($this->equalTo($latlng), $this->equalTo(2000))
             ->will($this->returnValue($this->barsInRangeResult()));
 
-        $placeDetailsMap = array(
-            array('111', $this->placeDetailsCollections()[0]),
-            array('222', $this->placeDetailsCollections()[1])
-        );
+        $placeDetailsMap = [
+            ['111', $this->placeDetailsCollections()[0]],
+            ['222', $this->placeDetailsCollections()[1]]
+        ];
         $placeApi->expects($this->exactly(2))
             ->method('getDetails')
             ->will($this->returnValueMap($placeDetailsMap));
@@ -166,6 +166,93 @@ class ApiRequestHandlerTest extends \PHPUnit_Framework_TestCase
         $requestHandler = new ApiRequestHandler($locationRepositiory, $placeRepositiory, $this->geocodeRepositiory->getMock(), $placeApi, $this->geocodeApi->getMock());
 
         $this->assertGetBars($requestHandler);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testGetBarsFromApiWhenQuotaExceededWhileGetBarsInRange()
+    {
+        $latlng = ['lat' => '10.10', 'lng' => '11.11'];
+
+        $locationRepositiory = $this->locationRepositiory
+            ->setMethods(['findOneByLocation', 'save'])
+            ->getMock();
+
+        $locationRepositiory->expects($this->once())
+            ->method('findOneByLocation')
+            ->with($this->equalTo($latlng))
+            ->will($this->returnValue(null));
+
+        $placeRepositiory = $this->placeRepositiory
+            ->setMethods(['findByPlaceId', 'save'])
+            ->getMock();
+
+        $placeApi = $this->placeApi
+            ->setMethods(['getBarsInRange', 'getDetails'])
+            ->getMock();
+
+        $placeApi->expects($this->once())
+            ->method('getBarsInRange')
+            ->with($this->equalTo($latlng), $this->equalTo(2000))
+            ->will($this->returnValue([
+                'status_code' => 200,
+                'status' => 'OVER_QUERY_LIMIT',
+                'data' => [],
+                'html_attributions' => []
+            ]));
+
+        $requestHandler = new ApiRequestHandler($locationRepositiory, $placeRepositiory, $this->geocodeRepositiory->getMock(), $placeApi, $this->geocodeApi->getMock());
+        $requestHandler->getBars(['lat' => '10.10', 'lng' => '11.11']);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testGetBarsFromApiWhenQuotaExceededWhileGetDetails()
+    {
+        $latlng = ['lat' => '10.10', 'lng' => '11.11'];
+
+        $locationRepositiory = $this->locationRepositiory
+            ->setMethods(['findOneByLocation', 'save'])
+            ->getMock();
+
+        $locationRepositiory->expects($this->once())
+            ->method('findOneByLocation')
+            ->with($this->equalTo($latlng))
+            ->will($this->returnValue(null));
+
+        $placeRepositiory = $this->placeRepositiory
+            ->setMethods(['findByPlaceId', 'save'])
+            ->getMock();
+        $placeRepositiory->expects($this->once())
+            ->method('findByPlaceId')
+            ->withConsecutive(
+                [$this->equalTo('111')],
+                [$this->equalTo('222')]
+            )
+            ->will($this->returnValue(null));
+
+        $placeApi = $this->placeApi
+            ->setMethods(['getBarsInRange', 'getDetails'])
+            ->getMock();
+
+        $placeApi->expects($this->once())
+            ->method('getBarsInRange')
+            ->with($this->equalTo($latlng), $this->equalTo(2000))
+            ->will($this->returnValue($this->barsInRangeResult()));
+
+        $placeApi->expects($this->once())
+            ->method('getDetails')
+            ->will($this->returnValue([
+                'status_code' => 200,
+                'status' => 'OVER_QUERY_LIMIT',
+                'html_attributions' => [],
+                'data' => []
+            ]));
+
+        $requestHandler = new ApiRequestHandler($locationRepositiory, $placeRepositiory, $this->geocodeRepositiory->getMock(), $placeApi, $this->geocodeApi->getMock());
+        $requestHandler->getBars(['lat' => '10.10', 'lng' => '11.11']);
     }
 
     private function assertGetBars(ApiRequestHandler $requestHandler)
@@ -286,6 +373,42 @@ class ApiRequestHandlerTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->assertGetLocation($requestHandler);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testGetLocationFromApiWhenQuotaExceeded()
+    {
+        $geoRepositiory = $this->geocodeRepositiory
+            ->setMethods(['findByAddress', 'save'])
+            ->getMock();
+        $geoRepositiory->expects($this->once())
+            ->method('findByAddress')
+            ->with($this->equalTo('warszawa'))
+            ->will($this->returnValue(null));
+        $geocodeApi = $this->geocodeApi
+            ->setMethods(['getLocation'])
+            ->getMock();
+        $geocodeApi->expects($this->once())
+            ->method('getLocation')
+            ->with($this->equalTo('warszawa'))
+            ->will($this->returnValue([
+                'status_code' => 200,
+                'status' => 'OVER_QUERY_LIMIT',
+                'html_attributions' => [],
+                'data' => []
+            ]));
+
+        $requestHandler = new ApiRequestHandler(
+            $this->locationRepositiory->getMock(),
+            $this->placeRepositiory->getMock(),
+            $geoRepositiory,
+            $this->placeApi->getMock(),
+            $geocodeApi
+        );
+
+        $requestHandler->getLocation('warszawa');
     }
 
     private function assertGetLocation(ApiRequestHandler $requestHandler)
