@@ -1,0 +1,289 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Pubs API",
+        "description": "Find pubs in your neighborhood\n",
+        "version": "1.0.0"
+    },
+    "host": "localhost:8880",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/api",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/pubs": {
+            "get": {
+                "summary": "Pubs",
+                "description": "The Pubs endpoint returns information about pubs located in range of 2km for given location. If location is not provided, the Neptune's Fountain in Gdansk is the default one. Maxium number of returned locations is 200.\n",
+                "parameters": [
+                    {
+                        "name": "location",
+                        "in": "query",
+                        "description": "Latitude and Longitude of location.",
+                        "required": false,
+                        "type": "string",
+                        "format": "lat,lng"
+                    }
+                ],
+                "tags": [
+                    "Pubs",
+                    "Pub"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pubs response",
+                        "schema": {
+                            "$ref": "#/definitions/Pubs"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/pub/{placeId}/detail": {
+            "get": {
+                "summary": "Pub details",
+                "description": "The Pub details endpoint returns detail informations about a pub.\n",
+                "parameters": [
+                    {
+                        "name": "placeId",
+                        "description": "Place ID",
+                        "required": true,
+                        "type": "number",
+                        "format": "string",
+                        "in": "path"
+                    }
+                ],
+                "tags": [
+                    "Pub"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pub details response",
+                        "schema": {
+                            "$ref": "#/definitions/PubDetail"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "summary": "Search",
+                "description": "The Search endpoint returns information about locations matched by search query. \nIt also returns a list of pubs in the neighborhood for the first matched location.\n",
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "query",
+                        "description": "Address search query",
+                        "required": true,
+                        "type": "string",
+                        "format": "string"
+                    }
+                ],
+                "tags": [
+                    "Search"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search response",
+                        "schema": {
+                            "$ref": "#/definitions/Search"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Pubs": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlaceShort"
+                    }
+                },
+                "html_attributions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "description": "Set of attributions which must be displayed to the user"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Data status: OK"
+                },
+                "count": {
+                    "type": "integer",
+                    "description": "Number of pubs"
+                }
+            }
+        },
+        "PubDetail": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/Place"
+                },
+                "html_attributions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "description": "Set of attributions which must be displayed to the user"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Data status: OK"
+                },
+                "count": {
+                    "type": "integer",
+                    "description": "Number of pubs"
+                }
+            }
+        },
+        "PlaceShort": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Pub name"
+                },
+                "place_id": {
+                    "type": "string",
+                    "description": "Unique Pub id"
+                },
+                "html_attributions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Set of attributions which must be displayed to the user"
+                }
+            }
+        },
+        "Place": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Pub name"
+                },
+                "place_id": {
+                    "type": "string",
+                    "description": "Unique Pub ID"
+                },
+                "location": {
+                    "type": "object",
+                    "properties": {
+                        "lat": {
+                            "type": "string",
+                            "description": "Latitude"
+                        },
+                        "lng": {
+                            "type": "string",
+                            "description": "Longitude"
+                        }
+                    }
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Formated address"
+                },
+                "phone": {
+                    "type": "string",
+                    "description": "Phone number"
+                },
+                "html_attributions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Set of attributions which must be displayed to the user"
+                }
+            }
+        },
+        "Search": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/PlaceShort"
+                    },
+                    "description": "Pubs list in neighborhood of `matched_location`"
+                },
+                "matched_location": {
+                    "$ref": "#/definitions/Location"
+                },
+                "other_matched_location": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Location"
+                    },
+                    "description": "List of other locations matched by query"
+                },
+                "html_attributions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "description": "Set of attributions which must be displayed to the user"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Data status: OK"
+                }
+            }
+        },
+        "Location": {
+            "type": "object",
+            "properties": {
+                "latlng": {
+                    "type": "string",
+                    "description": "Geocoordinates in format latitude,longitude"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Formated address"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "description": "Errors message"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Status: ERROR"
+                }
+            }
+        }
+    }
+}

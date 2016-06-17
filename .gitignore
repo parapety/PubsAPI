@@ -1,0 +1,8 @@
+vendor
+var/logs
+var/cache
+var/sessions
+.idea
+src/AppBundle/Entity/*.php~
+coverage/
+node_modules

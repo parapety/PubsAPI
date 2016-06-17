@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-6">
+            {% if pub.status == 'OK' %}
+                {% if pub.data.html_attributions %}
+                    <p class="text-muted small">{{ pub.data.html_attributions|join('<br>') }}</p>
+                {% endif %}
+                <h2>{{ pub.data.name }}</h2>
+                Address: <b>{{ pub.data.address }}</b><br />
+                Phone: <b>{{ pub.data.phone }}</b><br />
+                Geocoordinates: <b>{{ pub.data.lat }}, {{ pub.data.lng }}</b><br />
+
+            {% else %}
+                <span class="label label-danger">Error</span>
+            {% endif %}
+            <hr>
+            <a href="{{ path('homepage') }}{% if searchQuery is defined %}?form[search]={{ searchQuery }}{% endif %}"><< Back</a>
+        </div>
+        <div class="col-md-6">
+            <img src="http://maps.google.com/maps/api/staticmap?center={{ pub.data.lat }},{{ pub.data.lng }}&zoom=14&size=400x300&sensor=false" alt="Google Map" />
+        </div>
+    </div>
+{% endblock %}

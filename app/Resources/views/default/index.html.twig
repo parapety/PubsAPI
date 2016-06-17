@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-sm-6">
+
+            <div class="row">
+                <div class="col-sm-12 text-center">
+                    <button class="location btn btn-primary">Use my location</button>
+                </div>
+            </div>
+            <div class="row text-center">
+                <br>OR
+            </div>
+            <div class="row">
+                {{ form_start(form) }}
+                <div class="col-sm-9">
+                    {{ form_widget(form) }}
+                </div>
+                <div class="col-sm-3">
+                    <input type="submit" class="btn btn-default" name="submit" value="search"/>
+                </div>
+                {{ form_end(form) }}
+            </div>
+            <div class="row search-results">
+                {% if searchResults %}
+                    <hr>
+                    {% if searchResults.status == "OK" %}
+                        <h4 class="text-muted">Pubs nearby <i>{{ searchResults.matched_location.address }}</i></h4>
+                        {% if searchResults.data %}
+                            {% if searchResults.html_attributions %}<p
+                                    class="text-muted small">{{ searchResults.html_attributions|join('<br>') }}</p>{% endif %}
+                            <ul>
+                                {% for item in searchResults.data %}
+                                    <li>
+                                        <a href="{{ path('place', {pubId: item.place_id}) }}?form[search]={{ searchQuery }}">{{ item.name }}</a>
+                                        {% if item.html_attributions %}<p
+                                                class="text-muted small">{{ item.html_attributions|join('<br>') }}</p>{% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            Nothing found
+                        {% endif %}
+                        {% if searchResults.other_matched_location %}
+                            <div class="suggested-search">
+                                <hr>
+                                <h4>Suggestion for search...</h4>
+                                <ul>
+                                    {% for item in searchResults.other_matched_location %}
+                                        <li>{{ item.address }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <span class="label label-danger">Error</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-sm-6 neptuns-places">
+            <h4 class="text-muted">Pubs nearby <i>Neptune's Fountain in Gdańsk</i></h4>
+            {% if pubs and pubs.status == 'OK' %}
+                {% if pubs.html_attributions %}<p
+                        class="text-muted small">{{ pubs.html_attributions|join('<br>') }}</p>{% endif %}
+                {% if pubs.data %}
+                    <ul>
+                        {% for item in pubs.data %}
+                            <li>
+                                <a href="{{ path('place', {pubId: item.place_id}) }}">{{ item.name }}</a>
+                                {% if item.html_attributions %}<p
+                                        class="text-muted small">{{ item.html_attributions|join('<br>') }}</p>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <span class="label label-danger">Error</span>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        (function ($) {
+            var knownPosition = function (position) {
+                window.location.href = "{{ path('location') }}?location=" + position.coords.latitude + ',' + position.coords.longitude;
+            };
+            var unknownPosition = function (error) {
+                alert(error);
+            };
+            $('button.location').on('click', function () {
+                if (navigator.geolocation)
+                    navigator.geolocation.getCurrentPosition(knownPosition, unknownPosition);
+                else
+                    alert("Geolocalisation is not available");
+            });
+        })(jQuery);
+    </script>
+{% endblock %}

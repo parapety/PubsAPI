@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-6">
+            <h4 class="text-muted">Pubs in Yours neighborhood</h4>
+            {% if pubs and pubs.status == 'OK' %}
+                {% if pubs.html_attributions %}<p
+                        class="text-muted small">{{ pubs.html_attributions|join('<br>') }}</p>{% endif %}
+                {% if pubs.data %}
+                    <ul>
+                        {% for item in pubs.data %}
+                            <li>
+                                <a href="{{ path('place', {pubId: item.place_id}) }}">{{ item.name }}</a>
+                                {% if item.html_attributions %}<p
+                                        class="text-muted small">{{ item.html_attributions|join('<br>') }}</p>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% else %}
+                <span class="label label-danger">Error</span>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <img src="http://maps.google.com/maps/api/staticmap?center={{ location }}&zoom=14&size=400x300&sensor=false" />
+        </div>
+    </div>
+{% endblock %}

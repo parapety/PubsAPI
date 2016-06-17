@@ -1,0 +1,40 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/book/service_container.html
+parameters:
+#    parameter_name: value
+
+services:
+  guzzle_http_client:
+    class: GuzzleHttp\Client
+
+  wr_google_abstract_api:
+    class: AppBundle\Lib\Google\AbstractApi
+    arguments: ['@guzzle_http_client', '%google.api_key%']
+    abstract: true
+
+  wr_google_geocode_api:
+    class: AppBundle\Lib\Google\GeocodeApi
+    parent: wr_google_abstract_api
+
+  wr_google_place_api:
+    class: AppBundle\Lib\Google\PlaceApi
+    parent: wr_google_abstract_api
+
+  wr_place_repository:
+    class: Doctrine\ORM\EntityRepository
+    factory: ['@doctrine.orm.default_entity_manager', getRepository]
+    arguments: [AppBundle\Entity\Place]
+
+  wr_location_repository:
+    class: Doctrine\ORM\EntityRepository
+    factory: ['@doctrine.orm.default_entity_manager', getRepository]
+    arguments: [AppBundle\Entity\Location]
+
+  wr_geocode_repository:
+    class: Doctrine\ORM\EntityRepository
+    factory: ['@doctrine.orm.default_entity_manager', getRepository]
+    arguments: [AppBundle\Entity\Geocode]
+
+  wr_api_request_handler:
+    class: AppBundle\Lib\ApiRequestHandler
+    arguments: ['@wr_location_repository', '@wr_place_repository', '@wr_geocode_repository', '@wr_google_place_api', '@wr_google_geocode_api']
